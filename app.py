@@ -6,11 +6,13 @@ from flask_pydantic_spec import (
         )
 from pydantic import BaseModel, Field
 from tinydb import TinyDB, Query
+from tinydb.storages import MemoryStorage
+
 
 server =  Flask(__name__)
 spec = FlaskPydanticSpec('flask', title='Dev Júnior...')
 spec.register(server)
-database = TinyDB('database.json')
+database = TinyDB(storage=MemoryStorage)
 c = count()
 
 class Pessoa(BaseModel):
@@ -77,14 +79,11 @@ def altera_pessoa(id):
 
 
 @server.delete('/pessoas/<int:id>')
-# @spec.validate(resp=Response(HTTP_200=Pessoa))
 @spec.validate(resp=Response('HTTP_204'))
 def deleta_pessoa(id):
     '''
     deleta_pessoa: Remove uma Pessoa do banco de dados
     '''
-    # Pessoa = Query()
-    # database.remove(Pessoa.id == id)
     database.remove(Query().id == id)
     return jsonify({})
 
