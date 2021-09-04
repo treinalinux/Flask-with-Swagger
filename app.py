@@ -15,6 +15,12 @@ spec.register(server)
 database = TinyDB(storage=MemoryStorage)
 c = count()
 
+class QueryPessoa(BaseModel):
+    id: Optional[int]
+    nome: Optional[str]
+    idade: Optional[int]
+
+
 class Pessoa(BaseModel):
     id: Optional[int] = Field(default_factory=lambda: next(c))
     nome: str
@@ -26,15 +32,22 @@ class Pessoas(BaseModel):
     count: int
 
 @server.get('/pessoas')
-@spec.validate(resp=Response(HTTP_200=Pessoas))
+@spec.validate(
+        query=QueryPessoa,
+        resp=Response(HTTP_200=Pessoas))
 def buscar_pessoas():
     '''
     buscar_pessoas: Localiza todas as Pessoas no banco de dados
     '''
+    query = request.context.query.dict(exclude_none=True)
+    # breakpoint()
+    todas_as_pessoas = database.search(
+            Query().fragment(query)
+            )
     return jsonify(
             Pessoas(
-                pessoas = database.all(),
-                count = len(database.all())
+                pessoas = todas_as_pessoas,
+                count = len(todas_as_pessoas)
             ).dict()
     )
 
